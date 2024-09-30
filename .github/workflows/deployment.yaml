@@ -6,7 +6,7 @@ on:
       - dev
       - qa
       - uat
-      - master
+      - main
 
   workflow_dispatch:
 
@@ -32,7 +32,7 @@ jobs:
             ENV="${{ vars.ENV_QA }}"
           elif [[ "${{ github.ref }}" == "refs/heads/uat" ]]; then
             ENV="${{ vars.ENV_UAT }}"
-          elif [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             ENV="${{ vars.ENV_PROD }}"
           else
             echo "No matching environment found."
