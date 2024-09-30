@@ -15,12 +15,12 @@ on:
         options:
           - "dev"
           - "prod"
+          
 jobs:
  
   build-frontend:
     runs-on: ubuntu-latest
 
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,19 +29,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+
       - name: Create Variables
         id: vars
         run: |
           branch=${GITHUB_REF_NAME}
-          echo "::set-output-name=ENV::ENV_${branch^^}"
+          echo "::set-output name=ENV_VAR_NAME::ENV_${branch^^}" # Output ENV variable name
 
       - name: Set environment variables
-        env:
-          ENV: ${{ vars[steps.vars.outputs.ENV] }}
         run: |
-          echo "Environment variable is ${{ env.ENV }}"
+          # Fetch the environment variable dynamically using bash
+          ENV_VAR_NAME="${{ steps.vars.outputs.ENV_VAR_NAME }}" # The variable name
+          ENV_VALUE="${!ENV_VAR_NAME}"  # This expands the variable stored inside ENV_VAR_NAME
+          echo "Resolved ENV_VALUE: $ENV_VALUE"
 
       - name: Build and deploy app
         run: |
-          echo "Jump App is being built for development environment";
+          echo "Jump App is being built for $ENV_VALUE environment";
           ./scripts/frontendDeployer.sh ${{ github.head_ref || github.ref_name }}
+
