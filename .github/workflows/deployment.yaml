@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - dev
+      - qa
+      - uat
       - master
 
   workflow_dispatch:
@@ -14,13 +16,15 @@ on:
         required: true
         options:
           - "dev"
+          - "qa"
+          - "uat"
           - "prod"
+
 jobs:
  
   build-frontend:
     runs-on: ubuntu-latest
 
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,10 +36,32 @@ jobs:
 
       - name: Set environment variables
         run: |
-          export VAR_NAME=$(printf "ENV_%s" $GITHUB_REF_NAME)
-          echo "ENV=${!VAR_NAME}" >> $GITHUB_ENV
+          if [[ "${{ github.ref }}" == "refs/heads/dev" ]] || [[ "${{ github.event.inputs.environment }}" == "dev" ]]; then
+            # Use the repository variable for dev
+            ENV="${{ vars.ENV_DEV }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/qa" ]] || [[ "${{ github.event.inputs.environment }}" == "qa" ]]; then
+            # Use the repository variable for qa
+            ENV="${{ vars.ENV_QA }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/uat" ]] || [[ "${{ github.event.inputs.environment }}" == "uat" ]]; then
+            # Use the repository variable for uat
+            ENV="${{ vars.ENV_UAT }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
+            # Use the repository variable for production
+            ENV="${{ vars.ENV_PROD }}"
+          else
+            echo "No matching environment found."
+            exit 1
+          fi
+          echo "ENV=$ENV" >> $GITHUB_ENV  # Export the environment variable
+
+      - name: Print environment variable (debugging step)
+        run: |
+          echo "ENV variable is: $ENV"
+        env:
+          ENV: ${{ env.ENV }}
 
       - name: Build and deploy app
         run: |
-          echo "Jump App is being built for development environment";
+          echo "Jump App is being built for $ENV environment";
           ./scripts/frontendDeployer.sh ${{ github.head_ref || github.ref_name }}
+
