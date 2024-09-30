@@ -37,10 +37,10 @@ jobs:
           echo $VAR_NAME
           echo "ENV=${!VAR_NAME}" >> $GITHUB_ENV
       - name: Print environment variable (debugging step)
-        run: |
-          echo "ENV variable is: $ENV"
         env:
           ENV: ${{ env.ENV }}
+        run: |
+          echo "ENV variable is: $ENV"
 
       - name: Build and deploy app
         run: |
