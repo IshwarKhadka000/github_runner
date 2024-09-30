@@ -7,20 +7,11 @@ on:
       - master
 
   workflow_dispatch:
-    inputs:
-      environment:
-        type: choice
-        description: "Environment to deploy to"
-        required: true
-        options:
-          - "dev"
-          - "prod"
+
 jobs:
- 
   build-frontend:
     runs-on: ubuntu-latest
 
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,17 +21,23 @@ jobs:
         with:
           node-version: 18
 
-      - name: Set environment variables
+      - name: Set environment variable based on branch
         run: |
-          export VAR_NAME=$(printf "ENV_%s" $GITHUB_REF_NAME)
-          echo "ENV=${!VAR_NAME}" >> $GITHUB_ENV
+          # Create variable name based on the branch
+          VAR_NAME="ENV_${GITHUB_REF_NAME}"
+          echo "Branch: $GITHUB_REF_NAME"
+          echo "Variable Name: $VAR_NAME"
+          
+          # Directly set ENV from the repository variable
+          echo "ENV=${{ vars[VAR_NAME] }}" >> $GITHUB_ENV
+
       - name: Print environment variable (debugging step)
         run: |
           echo "ENV variable is: $ENV"
-        env:
-          ENV: ${{ env.ENV }}
 
       - name: Build and deploy app
         run: |
-          echo "Jump App is being built for development environment";
+          echo "Jump App is being built for ${GITHUB_REF_NAME} environment"
+          echo $ENV
           ./scripts/frontendDeployer.sh ${{ github.head_ref || github.ref_name }}
+
