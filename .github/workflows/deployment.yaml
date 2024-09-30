@@ -29,18 +29,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+      - name: Create Variables
+        id: vars
+        run: |
+          branch=${GITHUB_REF_NAME}
+          echo "::set-output-name=ENV::ENV_${branch^^}"
 
       - name: Set environment variables
-        run: |
-          export VAR_NAME=$(printf "ENV_%s" "${GITHUB_REF_NAME^^}")
-          echo $GITHUB_REF_NAME
-          echo $VAR_NAME
-          echo "ENV=${!VAR_NAME}" >> $GITHUB_ENV
-      - name: Print environment variable (debugging step)
         env:
-          ENV: ${{ env.ENV }}
+          ENV: ${{ vars[steps.vars.outputs.ENV] }}
         run: |
-          echo "ENV variable is: $ENV"
+          echo "Environment variable is ${{ env.ENV }}"
 
       - name: Build and deploy app
         run: |
