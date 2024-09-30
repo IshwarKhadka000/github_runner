@@ -45,7 +45,7 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/uat" ]] || [[ "${{ github.event.inputs.environment }}" == "uat" ]]; then
             # Use the repository variable for uat
             ENV="${{ vars.ENV_UAT }}"
-          elif [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
             # Use the repository variable for production
             ENV="${{ vars.ENV_PROD }}"
           else
