@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - dev
+      - qa
+      - uat
       - master
 
   workflow_dispatch:
@@ -14,16 +16,14 @@ on:
         required: true
         options:
           - "dev"
+          - "qa"
+          - "uat"
           - "prod"
-          
+
 jobs:
  
   build-frontend:
     runs-on: ubuntu-latest
-
-    env:  # Define your environment variables here
-      ENV_DEV: "Development Value"
-      ENV_PROD: "Production Value"
 
     steps:
       - name: Checkout code
@@ -34,22 +34,34 @@ jobs:
         with:
           node-version: 18
 
-      - name: Create Variables
-        id: vars
-        run: |
-          branch=${GITHUB_REF_NAME}
-          echo "::set-output name=ENV_VAR_NAME::ENV_${branch^^}" # Output ENV variable name
-
       - name: Set environment variables
         run: |
-          # Fetch the environment variable dynamically using bash
-          ENV_VAR_NAME="${{ steps.vars.outputs.ENV_VAR_NAME }}" # The variable name
-          ENV_VALUE="${!ENV_VAR_NAME}"  # This expands the variable stored inside ENV_VAR_NAME
-          echo "Resolved ENV_VALUE: $ENV_VALUE"
-          echo "ENV_VALUE=$ENV_VALUE" >> $GITHUB_ENV  # Set the value to the GitHub environment
+          if [[ "${{ github.ref }}" == "refs/heads/dev" ]] || [[ "${{ github.event.inputs.environment }}" == "dev" ]]; then
+            # Use the repository variable for dev
+            ENV="${{ vars.ENV_DEV }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/qa" ]] || [[ "${{ github.event.inputs.environment }}" == "qa" ]]; then
+            # Use the repository variable for qa
+            ENV="${{ vars.ENV_QA }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/uat" ]] || [[ "${{ github.event.inputs.environment }}" == "uat" ]]; then
+            # Use the repository variable for uat
+            ENV="${{ vars.ENV_UAT }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
+            # Use the repository variable for production
+            ENV="${{ vars.ENV_PROD }}"
+          else
+            echo "No matching environment found."
+            exit 1
+          fi
+          echo "ENV=$ENV" >> $GITHUB_ENV  # Export the environment variable
+
+      - name: Print environment variable (debugging step)
+        run: |
+          echo "ENV variable is: $ENV"
+        env:
+          ENV: ${{ env.ENV }}
 
       - name: Build and deploy app
         run: |
-          echo "Jump App is being built for $ENV_VALUE environment";
+          echo "Jump App is being built for $ENV environment";
           ./scripts/frontendDeployer.sh ${{ github.head_ref || github.ref_name }}
 
