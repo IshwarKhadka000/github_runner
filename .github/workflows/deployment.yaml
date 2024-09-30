@@ -9,19 +9,8 @@ on:
       - master
 
   workflow_dispatch:
-    inputs:
-      environment:
-        type: choice
-        description: "Environment to deploy to"
-        required: true
-        options:
-          - "dev"
-          - "qa"
-          - "uat"
-          - "prod"
 
 jobs:
- 
   build-frontend:
     runs-on: ubuntu-latest
 
@@ -36,22 +25,20 @@ jobs:
 
       - name: Set environment variables
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/dev" ]] || [[ "${{ github.event.inputs.environment }}" == "dev" ]]; then
-            # Use the repository variable for dev
+          # Determine the environment variable based on the branch
+          if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
             ENV="${{ vars.ENV_DEV }}"
-          elif [[ "${{ github.ref }}" == "refs/heads/qa" ]] || [[ "${{ github.event.inputs.environment }}" == "qa" ]]; then
-            # Use the repository variable for qa
+          elif [[ "${{ github.ref }}" == "refs/heads/qa" ]]; then
             ENV="${{ vars.ENV_QA }}"
-          elif [[ "${{ github.ref }}" == "refs/heads/uat" ]] || [[ "${{ github.event.inputs.environment }}" == "uat" ]]; then
-            # Use the repository variable for uat
+          elif [[ "${{ github.ref }}" == "refs/heads/uat" ]]; then
             ENV="${{ vars.ENV_UAT }}"
-          elif [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
-            # Use the repository variable for production
+          elif [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
             ENV="${{ vars.ENV_PROD }}"
           else
             echo "No matching environment found."
             exit 1
           fi
+
           echo "ENV=$ENV" >> $GITHUB_ENV  # Export the environment variable
 
       - name: Print environment variable (debugging step)
@@ -62,6 +49,6 @@ jobs:
 
       - name: Build and deploy app
         run: |
-          echo "Jump App is being built for $ENV environment";
+          echo "Jump App is being built for the environment: $ENV"
           ./scripts/frontendDeployer.sh ${{ github.head_ref || github.ref_name }}
 
