@@ -22,6 +22,7 @@ jobs:
           node-version: 18
 
       - name: Set environment variable based on branch
+        id: set_env
         run: |
           # Create variable name based on the branch
           VAR_NAME="ENV_${GITHUB_REF_NAME}"
@@ -29,7 +30,7 @@ jobs:
           echo "Variable Name: $VAR_NAME"
           
           # Directly set ENV from the repository variable
-          echo "ENV=${{ vars[VAR_NAME] }}" >> $GITHUB_ENV
+          echo "ENV=${{ vars[format('{0}', VAR_NAME)] }}" >> $GITHUB_ENV
 
       - name: Print environment variable (debugging step)
         run: |
