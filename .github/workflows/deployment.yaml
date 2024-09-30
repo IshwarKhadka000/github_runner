@@ -32,7 +32,7 @@ jobs:
 
       - name: Set environment variables
         run: |
-          export VAR_NAME=$(printf "ENV_%s" $GITHUB_REF_NAME)
+          export VAR_NAME=$(printf "ENV_%s" "${GITHUB_REF_NAME^^}")
           echo $GITHUB_REF_NAME
           echo $VAR_NAME
           echo "ENV=${!VAR_NAME}" >> $GITHUB_ENV
